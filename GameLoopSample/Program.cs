@@ -1,5 +1,6 @@
 ﻿using SDL2;
 using System;
+using System.Drawing;
 using System.Globalization;
 using System.Threading;
 
@@ -11,20 +12,9 @@ namespace GameLoopSample
         private const int SCREEN_WIDTH = 640;
         private const int SCREEN_HEIGHT = 480;
 
-        //The window we'll be rendering to
-        private static IntPtr _Window = IntPtr.Zero;
-
-        //The surface contained by the window
-        public static IntPtr Renderer = IntPtr.Zero;
-
-        //Globally used font
-        public static IntPtr Font = IntPtr.Zero;
         private static IntPtr _windowPtr;
         private static IntPtr _rendererPtr;
-
-
-        //Rendered texture
-        private static readonly LTexture _TextTexture = new LTexture();
+        private static GameText _gameText;
 
 
         static int Main(string[] args)
@@ -35,71 +25,37 @@ namespace GameLoopSample
              * Good place for free fonts: https://www.fontsquirrel.com/
              */
 
+            var quit = false;
 
-            bool quit = false;
+            Init();
 
-            SDL.SDL_Event e;
-
-            SDL.SDL_Init(SDL.SDL_INIT_VIDEO);
-            SDL_ttf.TTF_Init();
-
-            _windowPtr = SDL.SDL_CreateWindow("Game Loop", SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED, 640, 480, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-            _rendererPtr = SDL.SDL_CreateRenderer(_windowPtr, -1, 0);
-            var font = SDL_ttf.TTF_OpenFont("OpenSans-Regular.ttf", 25);
-            IntPtr surface = IntPtr.Zero;
-            IntPtr texture = IntPtr.Zero;
+            _gameText = new GameText(_rendererPtr, "OpenSans-Regular.ttf", "Hello World", 25, Color.White);
 
             while (!quit)
             {
-                SDL.SDL_WaitEvent(out e);
-
-                switch (e.type)
+                while(SDL.SDL_PollEvent(out var e) != 0)
                 {
-                    case SDL.SDL_EventType.SDL_QUIT:
+                    if (e.type == SDL.SDL_EventType.SDL_QUIT)
+                    {
                         quit = true;
                         break;
+                    }
                 }
 
-                var color = new SDL.SDL_Color();
-                color.a = 255;
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
+                _gameText.Text = DateTime.Now.ToLongTimeString();
 
-                //Create a surface for which to render the text to
-                surface = SDL_ttf.TTF_RenderText_Solid(font, "Hello World", color);
+                SDL.SDL_RenderClear(_rendererPtr);
 
-                //Create a texture from the surface
-                texture = SDL.SDL_CreateTextureFromSurface(_rendererPtr, surface);
+                _gameText.Render();
 
-                SDL.SDL_QueryTexture(texture, out uint format, out int access, out int width, out int height);
-
-                var srcRect = new SDL.SDL_Rect()
-                {
-                    x = 0,
-                    y = 0,
-                    w = width,
-                    h = height
-                };
-
-                var destRect = new SDL.SDL_Rect()
-                {
-                    x = 0,
-                    y = 0,
-                    w = width,
-                    h = height
-                };
-
-                SDL.SDL_RenderCopy(_rendererPtr, texture, ref srcRect, ref destRect);
                 SDL.SDL_RenderPresent(_rendererPtr);
             }
 
-            SDL.SDL_DestroyTexture(texture);
-            SDL.SDL_FreeSurface(surface);
             SDL.SDL_DestroyRenderer(_rendererPtr);
             SDL.SDL_DestroyWindow(_windowPtr);
-            SDL_ttf.TTF_CloseFont(font);
-            SDL_ttf.TTF_Quit();
+
+            _gameText.Dispose();
+
             SDL.SDL_Quit();
 
             return 0;
@@ -109,7 +65,7 @@ namespace GameLoopSample
         private static bool Init()
         {
             //Initialization flag
-            bool success = true;
+            var success = true;
 
             //Initialize SDL
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
@@ -126,9 +82,9 @@ namespace GameLoopSample
                 }
 
                 //Create window
-                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _windowPtr = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (_Window == IntPtr.Zero)
+                if (_windowPtr== IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -137,8 +93,8 @@ namespace GameLoopSample
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
-                    if (Renderer == IntPtr.Zero)
+                    _rendererPtr = SDL.SDL_CreateRenderer(_windowPtr, -1, renderFlags);
+                    if (_rendererPtr == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -146,7 +102,7 @@ namespace GameLoopSample
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(_rendererPtr, 48, 48, 48, 255);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -168,55 +124,5 @@ namespace GameLoopSample
 
             return success;
         }
-
-
-        static bool LoadMedia()
-        {
-            //Loading success flag
-            bool success = true;
-
-            //Open the font
-            Font = SDL_ttf.TTF_OpenFont("lazy.ttf", 28);
-            if (Font == IntPtr.Zero)
-            {
-                Console.WriteLine("Failed to load lazy font! SDL_ttf Error: {0}", SDL.SDL_GetError());
-                success = false;
-            }
-            else
-            {
-                //Render text
-                var textColor = new SDL.SDL_Color();
-                if (!_TextTexture.LoadFromRenderedText("The quick brown fox jumps over the lazy dog", textColor))
-                {
-                    Console.WriteLine("Failed to render text texture!");
-                    success = false;
-                }
-            }
-
-            return success;
-        }
-
-
-        private static void Close()
-        {
-            //Free loaded images
-            _TextTexture.Free();
-
-            //Free global font
-            SDL_ttf.TTF_CloseFont(Font);
-            Font = IntPtr.Zero;
-
-            //Destroy window
-            SDL.SDL_DestroyRenderer(Renderer);
-            SDL.SDL_DestroyWindow(_Window);
-            _Window = IntPtr.Zero;
-            Renderer = IntPtr.Zero;
-
-            //Quit SDL subsystems
-            SDL_ttf.TTF_Quit();
-            SDL_image.IMG_Quit();
-            SDL.SDL_Quit();
-        }
-
     }
 }
