@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace GameLoopSample
 {
@@ -15,8 +17,8 @@ namespace GameLoopSample
         private Stopwatch _timer;
         private int _elapsedTime;
         private bool _isRunning;
-        private int _framesPerSecond = 60;
         private int _timePerFrame = 1000 / 60;
+        private Queue<double> _frameTimes = new Queue<double>();
 
 
         public Game(int windowWidth, int windowHeight)
@@ -27,6 +29,8 @@ namespace GameLoopSample
 
 
         public IntPtr Renderer => _rendererPtr;
+
+        public double FPS { get; set; }
 
 
         public void Start()
@@ -52,6 +56,7 @@ namespace GameLoopSample
 
             while(_isRunning)
             {
+                //Check if the game has a signal to end
                 while (SDL.SDL_PollEvent(out var e) != 0)
                 {
                     if (e.type == SDL.SDL_EventType.SDL_QUIT)
@@ -59,12 +64,30 @@ namespace GameLoopSample
                         _isRunning = false;
                         break;
                     }
+                    else if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
+                    {
+                        Keyboard.AddKey(e.key.keysym.sym);
+                    }
+                    else if (e.type == SDL.SDL_EventType.SDL_KEYUP)
+                    {
+                        Keyboard.RemoveKey(e.key.keysym.sym);
+                    }
                 }
 
                 if (_timer.Elapsed.TotalMilliseconds >= _timePerFrame)
                 {
                     Update();
                     Render();
+
+                    //Add the frame time to the list of previous frame times
+                    _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
+
+                    //If the list is full, dequeue the oldest item
+                    if (_frameTimes.Count >= 80)
+                        _frameTimes.Dequeue();
+
+                    //Calculate the average frames per second
+                    FPS = Math.Round(_frameTimes.Average(), 2);
 
                     _timer.Restart();
                 }

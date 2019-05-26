@@ -66,6 +66,9 @@ namespace GameLoopSample
             }
         }
 
+        public int X { get; set; }
+
+        public int Y { get; set; }
 
         public void Render()
         {
@@ -81,8 +84,8 @@ namespace GameLoopSample
 
             var destRect = new SDL.SDL_Rect()
             {
-                x = 0,
-                y = 0,
+                x = X,
+                y = Y,
                 w = width,
                 h = height
             };
