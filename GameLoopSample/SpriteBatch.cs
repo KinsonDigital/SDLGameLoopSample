@@ -53,8 +53,8 @@ namespace GameLoopSample
 
             var destRect = new SDL.SDL_Rect()
             {
-                x = texture.X,
-                y = texture.Y,
+                x = x,
+                y = y,
                 w = texture.Width,
                 h = texture.Height
             };
@@ -84,6 +84,13 @@ namespace GameLoopSample
 
 
             SDL.SDL_RenderCopy(_rendererPtr, text.TextPtr, ref srcRect, ref destRect);
+        }
+
+
+        public void RenderLine(int startX, int startY, int endX, int endY, Color color)
+        {
+            SDL.SDL_SetRenderDrawColor(_rendererPtr, color.R, color.G, color.B, color.A);
+            SDL.SDL_RenderDrawLine(_rendererPtr, startX, startY, endX, endY);
         }
     }
 }
