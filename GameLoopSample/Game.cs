@@ -32,6 +32,8 @@ namespace GameLoopSample
 
         public double FPS { get; set; }
 
+        public TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
+
 
         public void Start()
         {
@@ -74,27 +76,30 @@ namespace GameLoopSample
                     }
                 }
 
+                
                 _timer.Restart();
 
-                var myTimer = new Stopwatch();
-                myTimer.Start();
-                Update();
-                Render();
-                myTimer.Stop();
+                if (TimeStep == TimeStepType.Fixed)
+                {
+                    Update();
+                    Render();
 
-                while(_timer.Elapsed.TotalMilliseconds <= _timePerFrame) { }
+                    while(_timer.Elapsed.TotalMilliseconds <= _timePerFrame) { }
 
-                var elapsedTime = _timer.Elapsed.TotalMilliseconds;
+                    //Add the frame time to the list of previous frame times
+                    _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
 
-                //Add the frame time to the list of previous frame times
-                _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
+                    //If the list is full, dequeue the oldest item
+                    if (_frameTimes.Count >= 80)
+                        _frameTimes.Dequeue();
 
-                //If the list is full, dequeue the oldest item
-                if (_frameTimes.Count >= 80)
-                    _frameTimes.Dequeue();
+                    //Calculate the average frames per second
+                    FPS = Math.Round(1000 / _frameTimes.Average(), 2);
+                }
+                else if (TimeStep == TimeStepType.Variable)
+                {
 
-                //Calculate the average frames per second
-                FPS = Math.Round(1000 / _frameTimes.Average(), 2);
+                }
             }
 
             ShutDown();

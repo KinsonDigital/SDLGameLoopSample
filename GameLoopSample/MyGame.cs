@@ -11,6 +11,7 @@ namespace GameLoopSample
     {
         private GameText _gameText;
         private Texture _boxFace;
+        private SpriteBatch _spriteBatch;
 
 
         public MyGame() : base(640, 480)
@@ -23,6 +24,8 @@ namespace GameLoopSample
 
         public override void Initialize()
         {
+            _spriteBatch = new SpriteBatch(Renderer);
+
             _gameText = new GameText(Renderer, "OpenSans-Regular.ttf", string.Empty, 12, Color.White);
 
             _boxFace = new Texture(Renderer, "OrangeBox")
@@ -50,12 +53,14 @@ namespace GameLoopSample
 
         public override void Render()
         {
-            SDL.SDL_RenderClear(Renderer);
+            _spriteBatch.Begin();
 
-            _boxFace.Render();
-            _gameText.Render();
+            _spriteBatch.Clear(Color.FromArgb(255, 48, 48, 48));
 
-            SDL.SDL_RenderPresent(Renderer);
+            _spriteBatch.Render(_boxFace, 200, 200);
+            _spriteBatch.Render(_gameText, 5, 5);
+
+            _spriteBatch.End();
 
             base.Render();
         }

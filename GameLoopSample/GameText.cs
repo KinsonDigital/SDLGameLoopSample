@@ -12,7 +12,6 @@ namespace GameLoopSample
         private readonly IntPtr _fontPtr;
         private SDL.SDL_Color _color;
         private IntPtr _surfacePtr;
-        private IntPtr _texture;
         private string _text;
 
 
@@ -35,7 +34,9 @@ namespace GameLoopSample
             _surfacePtr = SDL_ttf.TTF_RenderText_Solid(_fontPtr, text, _color);
             
             //Create a texture from the surface
-            _texture = SDL.SDL_CreateTextureFromSurface(_rendererPtr, _surfacePtr);
+            TextPtr = SDL.SDL_CreateTextureFromSurface(_rendererPtr, _surfacePtr);
+
+            UpdateSize();
         }
 
 
@@ -56,11 +57,13 @@ namespace GameLoopSample
                 _surfacePtr = SDL_ttf.TTF_RenderText_Solid(_fontPtr, value, _color);
 
                 //Remove the old texture pointer before creating a new one to prevent a memory leak
-                if (_texture != IntPtr.Zero)
-                    SDL.SDL_DestroyTexture(_texture);
+                if (TextPtr != IntPtr.Zero)
+                    SDL.SDL_DestroyTexture(TextPtr);
 
                 //Create a texture from the surface
-                _texture = SDL.SDL_CreateTextureFromSurface(_rendererPtr, _surfacePtr);
+                TextPtr = SDL.SDL_CreateTextureFromSurface(_rendererPtr, _surfacePtr);
+
+                UpdateSize();
 
                 SDL.SDL_FreeSurface(_surfacePtr);
             }
@@ -70,37 +73,27 @@ namespace GameLoopSample
 
         public int Y { get; set; }
 
-        public void Render()
-        {
-            SDL.SDL_QueryTexture(_texture, out var format, out var access, out var width, out var height);
+        public int Width { get; private set; }
 
-            var srcRect = new SDL.SDL_Rect()
-            {
-                x = 0,
-                y = 0,
-                w = width,
-                h = height
-            };
+        public int Height { get; private set; }
 
-            var destRect = new SDL.SDL_Rect()
-            {
-                x = X,
-                y = Y,
-                w = width,
-                h = height
-            };
+        public IntPtr TextPtr { get; set; }
 
-
-            SDL.SDL_RenderCopy(_rendererPtr, _texture, ref srcRect, ref destRect);
-        }
 
 
         public void Dispose()
         {
             SDL.SDL_FreeSurface(_surfacePtr);
-            SDL.SDL_DestroyTexture(_texture);
+            SDL.SDL_DestroyTexture(TextPtr);
             SDL_ttf.TTF_CloseFont(_fontPtr);
             SDL_ttf.TTF_Quit();
+        }
+
+        private void UpdateSize()
+        {
+            SDL.SDL_QueryTexture(TextPtr, out var format, out var access, out var width, out var height);
+            Width = width;
+            Height = height;
         }
     }
 }
