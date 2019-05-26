@@ -74,23 +74,27 @@ namespace GameLoopSample
                     }
                 }
 
-                if (_timer.Elapsed.TotalMilliseconds >= _timePerFrame)
-                {
-                    Update();
-                    Render();
+                _timer.Restart();
 
-                    //Add the frame time to the list of previous frame times
-                    _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
+                var myTimer = new Stopwatch();
+                myTimer.Start();
+                Update();
+                Render();
+                myTimer.Stop();
 
-                    //If the list is full, dequeue the oldest item
-                    if (_frameTimes.Count >= 80)
-                        _frameTimes.Dequeue();
+                while(_timer.Elapsed.TotalMilliseconds <= _timePerFrame) { }
 
-                    //Calculate the average frames per second
-                    FPS = Math.Round(_frameTimes.Average(), 2);
+                var elapsedTime = _timer.Elapsed.TotalMilliseconds;
 
-                    _timer.Restart();
-                }
+                //Add the frame time to the list of previous frame times
+                _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
+
+                //If the list is full, dequeue the oldest item
+                if (_frameTimes.Count >= 80)
+                    _frameTimes.Dequeue();
+
+                //Calculate the average frames per second
+                FPS = Math.Round(1000 / _frameTimes.Average(), 2);
             }
 
             ShutDown();
@@ -143,7 +147,7 @@ namespace GameLoopSample
                 else
                 {
                     //Create vsynced renderer for window
-                    var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
+                    var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED;
                     _rendererPtr = SDL.SDL_CreateRenderer(_windowPtr, -1, renderFlags);
                     if (_rendererPtr == IntPtr.Zero)
                     {
