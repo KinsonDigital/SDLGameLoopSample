@@ -23,7 +23,7 @@ namespace GameLoopSample
         private Vector _boxFaceVel = new Vector(100, 200);
 
 
-        public MyGame() : base(640, 480)
+        public MyGame()
         {
             TimeStep = TimeStepType.Fixed;
         }
@@ -66,6 +66,8 @@ namespace GameLoopSample
             {
                 DesiredFPS += 0.5f;
                 _desiredFPS.Text = $"Desired FPS: {Math.Round(DesiredFPS, 2)}";
+
+                WindowHeight += 20;
             }
 
 
@@ -73,6 +75,8 @@ namespace GameLoopSample
             {
                 DesiredFPS -= 0.5f;
                 _desiredFPS.Text = $"Desired FPS: {Math.Round(DesiredFPS, 2)}";
+
+                WindowHeight -= 20;
             }
 
 

@@ -12,8 +12,6 @@ namespace GameLoopSample
     {
         private static IntPtr _windowPtr;
         private static IntPtr _rendererPtr;
-        private int _windowWidth = 640;
-        private int _windowHeight = 480;
         private Stopwatch _timer;
         private TimeSpan _lastFrameTime;
         private bool _isRunning;
@@ -22,10 +20,8 @@ namespace GameLoopSample
         private TimeSpan _elapsedRenderTime;
 
 
-        public Game(int windowWidth, int windowHeight)
+        public Game()
         {
-            _windowWidth = windowWidth;
-            _windowHeight = windowHeight;
         }
 
 
@@ -40,6 +36,38 @@ namespace GameLoopSample
         }
 
         public TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
+
+
+        public int WindowWidth
+        {
+            get
+            {
+                SDL.SDL_GetWindowSize(_windowPtr, out int w, out _);
+
+                return w;
+            }
+            set
+            {
+                SDL.SDL_GetWindowSize(_windowPtr, out _, out int h);
+                SDL.SDL_SetWindowSize(_windowPtr, value, h);
+            }
+        }
+
+
+        public int WindowHeight
+        {
+            get
+            {
+                SDL.SDL_GetWindowSize(_windowPtr, out _, out int h);
+
+                return h;
+            }
+            set
+            {
+                SDL.SDL_GetWindowSize(_windowPtr, out int w, out _);
+                SDL.SDL_SetWindowSize(_windowPtr, w, value);
+            }
+        }
 
 
         public void Start()
@@ -153,7 +181,7 @@ namespace GameLoopSample
 
                 //Create window
                 _windowPtr = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-                    _windowWidth, _windowHeight, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
+                    640, 480, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
                 if (_windowPtr == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
