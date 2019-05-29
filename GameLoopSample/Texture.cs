@@ -42,11 +42,6 @@ namespace GameLoopSample
 
         public IntPtr TexturePtr { get; set; }
 
-
-        public int X { get; set; }
-
-        public int Y { get; set; }
-
         public int Width { get; private set; }
 
         public int Height { get; private set; }

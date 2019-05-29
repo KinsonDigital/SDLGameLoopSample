@@ -15,10 +15,11 @@ namespace GameLoopSample
         private int _windowWidth = 640;
         private int _windowHeight = 480;
         private Stopwatch _timer;
-        private int _elapsedTime;
+        private TimeSpan _lastFrameTime;
         private bool _isRunning;
-        private int _timePerFrame = 1000 / 60;
-        private Queue<double> _frameTimes = new Queue<double>();
+        private float _targetFrameRate = 1000f / 60f;
+        private Queue<float> _frameTimes = new Queue<float>();
+        private TimeSpan _elapsedRenderTime;
 
 
         public Game(int windowWidth, int windowHeight)
@@ -30,7 +31,13 @@ namespace GameLoopSample
 
         public IntPtr Renderer => _rendererPtr;
 
-        public double FPS { get; set; }
+        public float CurrentFPS { get; private set; }
+
+        public float DesiredFPS
+        {
+            get => 1000f / _targetFrameRate;
+            set => _targetFrameRate = 1000f / value;
+        }
 
         public TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
 
@@ -58,47 +65,49 @@ namespace GameLoopSample
 
             while(_isRunning)
             {
-                //Check if the game has a signal to end
-                while (SDL.SDL_PollEvent(out var e) != 0)
-                {
-                    if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                    {
-                        _isRunning = false;
-                        break;
-                    }
-                    else if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
-                    {
-                        Keyboard.AddKey(e.key.keysym.sym);
-                    }
-                    else if (e.type == SDL.SDL_EventType.SDL_KEYUP)
-                    {
-                        Keyboard.RemoveKey(e.key.keysym.sym);
-                    }
-                }
-
-                
-                _timer.Restart();
-
                 if (TimeStep == TimeStepType.Fixed)
                 {
-                    Update();
-                    Render();
+                    if (_timer.Elapsed.TotalMilliseconds >= _targetFrameRate)
+                    {
+                        Update(_timer.Elapsed);
+                        Render(_timer.Elapsed);
 
-                    while(_timer.Elapsed.TotalMilliseconds <= _timePerFrame) { }
+                        //Add the frame time to the list of previous frame times
+                        _frameTimes.Enqueue((float)_timer.Elapsed.TotalMilliseconds);
 
-                    //Add the frame time to the list of previous frame times
-                    _frameTimes.Enqueue(_timer.Elapsed.TotalMilliseconds);
+                        //If the list is full, dequeue the oldest item
+                        if (_frameTimes.Count >= 100)
+                            _frameTimes.Dequeue();
 
-                    //If the list is full, dequeue the oldest item
-                    if (_frameTimes.Count >= 80)
-                        _frameTimes.Dequeue();
+                        //Calculate the average frames per second
+                        CurrentFPS = (float)Math.Round(1000f / _frameTimes.Average(), 2);
 
-                    //Calculate the average frames per second
-                    FPS = Math.Round(1000 / _frameTimes.Average(), 2);
+                        _timer.Restart();
+                    }
                 }
                 else if (TimeStep == TimeStepType.Variable)
                 {
+                    var currentFrameTime = _timer.Elapsed;
+                    var elapsed = currentFrameTime - _lastFrameTime;
 
+                    _lastFrameTime = currentFrameTime;
+
+                    Update(elapsed);
+                    Render(elapsed);
+
+                    _timer.Stop();
+
+                    //Add the frame time to the list of previous frame times
+                    _frameTimes.Enqueue((float)elapsed.TotalMilliseconds);
+
+                    //If the list is full, dequeue the oldest item
+                    if (_frameTimes.Count >= 100)
+                        _frameTimes.Dequeue();
+
+                    //Calculate the average frames per second
+                    CurrentFPS = (float)Math.Round(1000f / _frameTimes.Average(), 2);
+
+                    _timer.Start();
                 }
             }
 
@@ -111,12 +120,13 @@ namespace GameLoopSample
         }
 
 
-        public virtual void Update()
+        public virtual void Update(TimeSpan elapsedTime)
         {
+
         }
 
 
-        public virtual void Render()
+        public virtual void Render(TimeSpan elapsedTime)
         {
         }
 
