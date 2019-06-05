@@ -10,6 +10,7 @@ namespace GameLoopSample
 {
     public class Game
     {
+        #region Fields
         private static IntPtr _windowPtr;
         private static IntPtr _rendererPtr;
         private Stopwatch _timer;
@@ -18,13 +19,17 @@ namespace GameLoopSample
         private float _targetFrameRate = 1000f / 60f;
         private Queue<float> _frameTimes = new Queue<float>();
         private TimeSpan _elapsedRenderTime;
+        #endregion
 
 
+        #region Constructors
         public Game()
         {
         }
+        #endregion
 
 
+        #region Props
         public IntPtr Renderer => _rendererPtr;
 
         public float CurrentFPS { get; private set; }
@@ -36,7 +41,6 @@ namespace GameLoopSample
         }
 
         public TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
-
 
         public int WindowWidth
         {
@@ -53,7 +57,6 @@ namespace GameLoopSample
             }
         }
 
-
         public int WindowHeight
         {
             get
@@ -69,7 +72,11 @@ namespace GameLoopSample
             }
         }
 
+        internal static List<SDL.SDL_Keycode> CurrentStateKeys { get; set; } = new List<SDL.SDL_Keycode>();
+        #endregion
 
+
+        #region Public Methods
         public void Start()
         {
             InitEngine();
@@ -85,6 +92,24 @@ namespace GameLoopSample
         }
 
 
+        public virtual void Initialize()
+        {
+        }
+
+
+        public virtual void Update(TimeSpan elapsedTime)
+        {
+
+        }
+
+
+        public virtual void Render(TimeSpan elapsedTime)
+        {
+        }
+        #endregion
+
+
+        #region Private Methods
         private void Run()
         {
             _isRunning = true;
@@ -93,6 +118,8 @@ namespace GameLoopSample
 
             while(_isRunning)
             {
+                UpdateInputStates();
+
                 if (TimeStep == TimeStepType.Fixed)
                 {
                     if (_timer.Elapsed.TotalMilliseconds >= _targetFrameRate)
@@ -143,23 +170,24 @@ namespace GameLoopSample
         }
 
 
-        public virtual void Initialize()
+        private void UpdateInputStates()
         {
+            //Check if the game has a signal to end
+            while (SDL.SDL_PollEvent(out var e) != 0)
+            {
+                if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
+                {
+                    if (!CurrentStateKeys.Contains(e.key.keysym.sym))
+                        CurrentStateKeys.Add(e.key.keysym.sym);
+                }
+                else if (e.type == SDL.SDL_EventType.SDL_KEYUP)
+                {
+                    CurrentStateKeys.Remove(e.key.keysym.sym);
+                }
+            }
         }
 
 
-        public virtual void Update(TimeSpan elapsedTime)
-        {
-
-        }
-
-
-        public virtual void Render(TimeSpan elapsedTime)
-        {
-        }
-
-
-        #region Private Methods
         private void InitEngine()
         {
             //Initialization flag

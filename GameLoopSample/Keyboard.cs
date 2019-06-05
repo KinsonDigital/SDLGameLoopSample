@@ -7,10 +7,13 @@ namespace GameLoopSample
 {
     public static class Keyboard
     {
+        #region Private Fields
         private static List<SDL.SDL_Keycode> _currentStateKeys = new List<SDL.SDL_Keycode>();
         private static List<SDL.SDL_Keycode> _previousStateKeys = new List<SDL.SDL_Keycode>();
+        #endregion
 
 
+        #region Public Methods
         public static bool IsKeyDown(SDL.SDL_Keycode key) => _currentStateKeys.Contains(key);
 
 
@@ -22,21 +25,11 @@ namespace GameLoopSample
             return !_currentStateKeys.Contains(key) && _previousStateKeys.Contains(key);
         }
 
+
         public static void UpdateCurrentState()
         {
-            //Check if the game has a signal to end
-            while (SDL.SDL_PollEvent(out var e) != 0)
-            {
-                if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
-                {
-                    if (!_currentStateKeys.Contains(e.key.keysym.sym))
-                        _currentStateKeys.Add(e.key.keysym.sym);
-                }
-                else if (e.type == SDL.SDL_EventType.SDL_KEYUP)
-                {
-                    _currentStateKeys.Remove(e.key.keysym.sym);
-                }
-            }
+            _currentStateKeys.Clear();
+            _currentStateKeys.AddRange(Game.CurrentStateKeys);
         }
 
 
@@ -45,5 +38,6 @@ namespace GameLoopSample
             _previousStateKeys.Clear();
             _previousStateKeys.AddRange(_currentStateKeys);
         }
+        #endregion
     }
 }
