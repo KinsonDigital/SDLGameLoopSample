@@ -16,7 +16,7 @@ namespace GameLoopSample
         private Stopwatch _timer;
         private TimeSpan _lastFrameTime;
         private bool _isRunning;
-        private float _targetFrameRate = 1000f / 60f;
+        private static float _targetFrameRate = 1000f / 60f;
         private Queue<float> _frameTimes = new Queue<float>();
         private TimeSpan _elapsedRenderTime;
         #endregion
@@ -30,19 +30,19 @@ namespace GameLoopSample
 
 
         #region Props
-        public IntPtr Renderer => _rendererPtr;
+        public static IntPtr Renderer => _rendererPtr;
 
-        public float CurrentFPS { get; private set; }
+        public static float CurrentFPS { get; private set; }
 
-        public float DesiredFPS
+        public static float DesiredFPS
         {
             get => 1000f / _targetFrameRate;
             set => _targetFrameRate = 1000f / value;
         }
 
-        public TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
+        public static TimeStepType TimeStep { get; set; } = TimeStepType.Fixed;
 
-        public int WindowWidth
+        public static int WindowWidth
         {
             get
             {
@@ -57,7 +57,7 @@ namespace GameLoopSample
             }
         }
 
-        public int WindowHeight
+        public static int WindowHeight
         {
             get
             {
@@ -190,40 +190,33 @@ namespace GameLoopSample
 
         private void InitEngine()
         {
-            //Initialization flag
-            var success = true;
-
             //Initialize SDL
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
             {
-                Console.WriteLine("SDL could not initialize! SDL_Error: {0}", SDL.SDL_GetError());
-                success = false;
+                throw new Exception($"SDL could not initialize! SDL_Error: {SDL.SDL_GetError()}");
             }
             else
             {
                 //Set texture filtering to linear
                 if (SDL.SDL_SetHint(SDL.SDL_HINT_RENDER_SCALE_QUALITY, "1") == SDL.SDL_bool.SDL_FALSE)
-                {
-                    Console.WriteLine("Warning: Linear texture filtering not enabled!");
-                }
+                    throw new Exception("Warning: Linear texture filtering not enabled!");
 
                 //Create window
                 _windowPtr = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                     640, 480, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
                 if (_windowPtr == IntPtr.Zero)
                 {
-                    Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
-                    success = false;
+                    throw new Exception($"Window could not be created! SDL_Error: {SDL.SDL_GetError()}");
                 }
                 else
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED;
                     _rendererPtr = SDL.SDL_CreateRenderer(_windowPtr, -1, renderFlags);
+
                     if (_rendererPtr == IntPtr.Zero)
                     {
-                        Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
-                        success = false;
+                        throw new Exception($"Renderer could not be created! SDL Error: {SDL.SDL_GetError()}");
                     }
                     else
                     {
@@ -232,18 +225,13 @@ namespace GameLoopSample
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
+
                         if ((SDL_image.IMG_Init(imgFlags) > 0 & imgFlags > 0) == false)
-                        {
-                            Console.WriteLine("SDL_image could not initialize! SDL_image Error: {0}", SDL.SDL_GetError());
-                            success = false;
-                        }
+                            throw new Exception($"SDL_image could not initialize! SDL_image Error: {SDL.SDL_GetError()}");
 
                         //Initialize SDL_ttf
                         if (SDL_ttf.TTF_Init() == -1)
-                        {
-                            Console.WriteLine("SDL_ttf could not initialize! SDL_ttf Error: {0}", SDL.SDL_GetError());
-                            success = false;
-                        }
+                            throw new Exception($"SDL_ttf could not initialize! SDL_ttf Error: {SDL.SDL_GetError()}");
                     }
                 }
             }
