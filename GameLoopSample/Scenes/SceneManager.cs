@@ -4,11 +4,11 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
-namespace GameLoopSample
+namespace GameLoopSample.Scenes
 {
     public class SceneManager
     {
-        private readonly List<GameScene> _scenes = new List<GameScene>();
+        private readonly List<IScene> _scenes = new List<IScene>();
 
 
         public SceneManager(SpriteBatch spriteBatch)
@@ -20,7 +20,7 @@ namespace GameLoopSample
         public static SpriteBatch SpriteBatch { get; private set; }
 
 
-        public void AddScene(GameScene scene)
+        public void AddScene(IScene scene)
         {
             //Deactivate all scenes
             _scenes.ForEach(s => s.IsActive = false);

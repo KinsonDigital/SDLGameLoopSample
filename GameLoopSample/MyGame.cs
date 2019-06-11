@@ -26,6 +26,7 @@ namespace GameLoopSample
 
             _sceneManager = new SceneManager(_spriteBatch);
             _sceneManager.AddScene(new FPSScene());
+            _sceneManager.AddScene(new RenderPerfScene(1_000));
 
             _sceneManager.Initialize();
 

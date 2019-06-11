@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace GameLoopSample
+namespace GameLoopSample.Scenes
 {
-    public class GameScene
+    public class GameScene : IScene
     {
         public bool IsActive { get; set; }
 
