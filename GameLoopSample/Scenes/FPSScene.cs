@@ -87,24 +87,24 @@ namespace GameLoopSample.Scenes
         public override void Render(TimeSpan elapsedTime)
         {
             //Render the start line
-            SceneManager.SpriteBatch.Render(_startText, 135, 150);
+            SceneManager.SpriteBatch.Render(_startText, 135, 150, Color.DarkBlue);
             SceneManager.SpriteBatch.RenderLine(150, 175, 150, 275, Color.Green);
 
             //Render the finish line
-            SceneManager.SpriteBatch.Render(_finishText, 335, 150);
+            SceneManager.SpriteBatch.Render(_finishText, 335, 150, Color.DarkBlue);
             SceneManager.SpriteBatch.RenderLine(_finishLineX, 175, _finishLineX, 275, Color.Yellow);
 
             //Render the distance text
-            SceneManager.SpriteBatch.Render(_distanceText, 250 - (_distanceText.Width / 2), 300);
+            SceneManager.SpriteBatch.Render(_distanceText, 250 - (_distanceText.Width / 2), 300, Color.DarkBlue);
 
             //Render the desired FPS text
-            SceneManager.SpriteBatch.Render(_desiredFPS, 5, 5);
+            SceneManager.SpriteBatch.Render(_desiredFPS, 5, 5, Color.DarkBlue);
 
             //Render the current FPS
-            SceneManager.SpriteBatch.Render(_currentFPS, 5, 20);
+            SceneManager.SpriteBatch.Render(_currentFPS, 5, 20, Color.DarkBlue);
 
             //Render the type of game loop
-            SceneManager.SpriteBatch.Render(_gameLoopType, 5, 35);
+            SceneManager.SpriteBatch.Render(_gameLoopType, 5, 35, Color.DarkBlue);
 
             //Render box face!!
             SceneManager.SpriteBatch.Render(_boxFace, (int)_boxFaceVel.X, (int)_boxFaceVel.Y);

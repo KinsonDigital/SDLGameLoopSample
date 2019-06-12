@@ -37,10 +37,37 @@ namespace GameLoopSample
         }
 
 
+        public void Render(Texture texture)
+        {
+            SDL.SDL_SetTextureColorMod(texture.TexturePtr, texture.Color.R, texture.Color.G, texture.Color.B);
+            SDL.SDL_SetTextureAlphaMod(texture.TexturePtr, texture.Color.A);
+            SDL.SDL_SetTextureBlendMode(texture.TexturePtr, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+
+            var srcRect = new SDL.SDL_Rect()
+            {
+                x = 0,
+                y = 0,
+                w = texture.Width,
+                h = texture.Height
+            };
+
+            var destRect = new SDL.SDL_Rect()
+            {
+                x = texture.X,
+                y = texture.Y,
+                w = texture.Width,
+                h = texture.Height
+            };
+
+            //Render texture to screen
+            SDL.SDL_RenderCopy(_rendererPtr, texture.TexturePtr, ref srcRect, ref destRect);
+        }
+
+
         public void Render(Texture texture, int x, int y)
         {
-            SDL.SDL_SetTextureColorMod(texture.TexturePtr, 255, 255, 255);
-            SDL.SDL_SetTextureAlphaMod(texture.TexturePtr, 255);
+            SDL.SDL_SetTextureColorMod(texture.TexturePtr, texture.Color.R, texture.Color.G, texture.Color.B);
+            SDL.SDL_SetTextureAlphaMod(texture.TexturePtr, texture.Color.A);
             SDL.SDL_SetTextureBlendMode(texture.TexturePtr, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
 
             var srcRect = new SDL.SDL_Rect()
@@ -82,6 +109,30 @@ namespace GameLoopSample
                 h = text.Height
             };
 
+            SDL.SDL_RenderCopy(_rendererPtr, text.TextPtr, ref srcRect, ref destRect);
+        }
+
+
+        public void Render(GameText text, int x, int y, Color color)
+        {
+            var srcRect = new SDL.SDL_Rect()
+            {
+                x = 0,
+                y = 0,
+                w = text.Width,
+                h = text.Height
+            };
+
+            var destRect = new SDL.SDL_Rect()
+            {
+                x = x,
+                y = y,
+                w = text.Width,
+                h = text.Height
+            };
+
+            if (text.Color.R != color.R || text.Color.G != color.G || text.Color.B != color.B || text.Color.A != color.A)
+                text.Color = color;
 
             SDL.SDL_RenderCopy(_rendererPtr, text.TextPtr, ref srcRect, ref destRect);
         }

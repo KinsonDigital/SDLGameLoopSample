@@ -14,6 +14,7 @@ namespace GameLoopSample.Scenes
         private List<Texture> _textures = new List<Texture>();
         private Dictionary<int, bool> _textureTravelDirections = new Dictionary<int, bool>();
         private int _totalTextures;
+        private int _totalSamples = 2000;
         private float _averageRenderTimeValue;
         private readonly Queue<float> _renderTimes = new Queue<float>();
 
@@ -81,54 +82,38 @@ namespace GameLoopSample.Scenes
         {
             //Render the current frames per second text
             SceneManager.SpriteBatch.Render(_currentFPS, 5, 5);
+
+            _averageRenderTime.Color = _renderTimes.Count >= _totalSamples ?
+                Color.Green :
+                Color.White;
+
             SceneManager.SpriteBatch.Render(_averageRenderTime, 5, 20);
 
             var timer = new Stopwatch();
-
             timer.Start();
 
             for (int i = 0; i < _textures.Count; i++)
             {
-                SDL.SDL_SetTextureColorMod(_textures[i].TexturePtr, _textures[i].Color.R, _textures[i].Color.G, _textures[i].Color.B);
-                SDL.SDL_SetTextureAlphaMod(_textures[i].TexturePtr, _textures[i].Color.A);
-                SDL.SDL_SetTextureBlendMode(_textures[i].TexturePtr, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
-
-                timer.Stop();
-
-                var srcRect = new SDL.SDL_Rect()
-                {
-                    x = 0,
-                    y = 0,
-                    w = _textures[i].Width,
-                    h = _textures[i].Height
-                };
-
-                var destRect = new SDL.SDL_Rect()
-                {
-                    x = _textures[i].X,
-                    y = _textures[i].Y,
-                    w = _textures[i].Width,
-                    h = _textures[i].Height
-                };
-
-                timer.Start();
-
-                //Render texture to screen
-                SDL.SDL_RenderCopy(Game.Renderer, _textures[i].TexturePtr, ref srcRect, ref destRect);
+                SceneManager.SpriteBatch.Render(_textures[i]);
             }
 
             SDL.SDL_RenderPresent(Game.Renderer);
 
             timer.Stop();
-
-            if (_renderTimes.Count >= 100)
-                _renderTimes.Dequeue();
-
-            _renderTimes.Enqueue((float)timer.Elapsed.TotalMilliseconds);
-
-            _averageRenderTimeValue = (float)Math.Round(_renderTimes.Average(), 2);
+            RecordTime(timer.Elapsed.TotalMilliseconds);
 
             base.Render(elapsedTime);
+        }
+
+
+        private void RecordTime(double time)
+        {
+            if (_renderTimes.Count >= _totalSamples)
+                _renderTimes.Dequeue();
+
+            _renderTimes.Enqueue((float)time);
+
+            _averageRenderTimeValue = (float)Math.Round(_renderTimes.Average(), 2);
         }
     }
 }

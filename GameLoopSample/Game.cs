@@ -12,13 +12,11 @@ namespace GameLoopSample
     {
         #region Fields
         private static IntPtr _windowPtr;
-        private static IntPtr _rendererPtr;
         private Stopwatch _timer;
         private TimeSpan _lastFrameTime;
         private bool _isRunning;
         private static float _targetFrameRate = 1000f / 60f;
         private Queue<float> _frameTimes = new Queue<float>();
-        private TimeSpan _elapsedRenderTime;
         #endregion
 
 
@@ -30,7 +28,7 @@ namespace GameLoopSample
 
 
         #region Props
-        public static IntPtr Renderer => _rendererPtr;
+        public static IntPtr Renderer { get; private set; }
 
         public static float CurrentFPS { get; private set; }
 
@@ -212,16 +210,16 @@ namespace GameLoopSample
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED;
-                    _rendererPtr = SDL.SDL_CreateRenderer(_windowPtr, -1, renderFlags);
+                    Renderer = SDL.SDL_CreateRenderer(_windowPtr, -1, renderFlags);
 
-                    if (_rendererPtr == IntPtr.Zero)
+                    if (Renderer == IntPtr.Zero)
                     {
                         throw new Exception($"Renderer could not be created! SDL Error: {SDL.SDL_GetError()}");
                     }
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(_rendererPtr, 48, 48, 48, 255);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 48, 48, 48, 255);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -240,7 +238,7 @@ namespace GameLoopSample
 
         private void ShutDown()
         {
-            SDL.SDL_DestroyRenderer(_rendererPtr);
+            SDL.SDL_DestroyRenderer(Renderer);
             SDL.SDL_DestroyWindow(_windowPtr);
             SDL.SDL_Quit();
         }

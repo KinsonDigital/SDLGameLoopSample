@@ -69,6 +69,41 @@ namespace GameLoopSample
             }
         }
 
+        public Color Color
+        {
+            get => Color.FromArgb(_color.r, _color.g, _color.b, _color.a);
+            set
+            {
+                if (_color.r == value.R && _color.g == value.G && _color.b == value.B && _color.a == value.A)
+                    return;
+
+                _color = new SDL.SDL_Color
+                {
+                    a = value.A,
+                    r = value.R,
+                    g = value.G,
+                    b = value.B
+                };
+
+                if (_surfacePtr == IntPtr.Zero)
+                    SDL.SDL_FreeSurface(_surfacePtr);
+
+                //Create a surface for which to render the text to
+                _surfacePtr = SDL_ttf.TTF_RenderText_Solid(_fontPtr, _text, _color);
+
+                //Remove the old texture pointer before creating a new one to prevent a memory leak
+                if (TextPtr != IntPtr.Zero)
+                    SDL.SDL_DestroyTexture(TextPtr);
+
+                //Create a texture from the surface
+                TextPtr = SDL.SDL_CreateTextureFromSurface(_rendererPtr, _surfacePtr);
+
+                UpdateSize();
+
+                SDL.SDL_FreeSurface(_surfacePtr);
+            }
+        }
+
         public int X { get; set; }
 
         public int Y { get; set; }
